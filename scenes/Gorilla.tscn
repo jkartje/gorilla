@@ -1,0 +1,40 @@
+[gd_scene load_steps=6 format=3 uid="uid://bo8volbqh4b5s"]
+
+[ext_resource type="Script" uid="uid://dt74prn5jmn2m" path="res://scripts/gorilla.gd" id="1_383j2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_21d0r"]
+size = Vector3(1, 2, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_21d0r"]
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4dn1m"]
+albedo_color = Color(0, 0.745098, 0, 1)
+emission_enabled = true
+emission = Color(0, 1, 0, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_ymfyc"]
+size = Vector3(0.05, 0.05, 1)
+
+[node name="Gorilla" type="CharacterBody3D"]
+script = ExtResource("1_383j2")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("BoxMesh_21d0r")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_21d0r")
+
+[node name="ThrowOrigin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0.6)
+
+[node name="AimPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0.6)
+
+[node name="AimLine" type="MeshInstance3D" parent="AimPivot"]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, -0.5)
+material_override = SubResource("StandardMaterial3D_4dn1m")
+mesh = SubResource("BoxMesh_ymfyc")

@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://bb1qsnpfciww6"]
+
+[ext_resource type="Script" uid="uid://djqqu8rdw7u78" path="res://scripts/banana_projectile.gd" id="1_ta52b"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_p1hi7"]
+radius = 0.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ta52b"]
+radius = 0.2
+
+[node name="BananaProjectile" type="RigidBody3D"]
+script = ExtResource("1_ta52b")
+
+[node name="BananaMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_p1hi7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_ta52b")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
