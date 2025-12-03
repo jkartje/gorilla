@@ -63,6 +63,10 @@ func _update_hud(gorilla: Node) -> void:
 
 	text += "Charge: %.1f\n" % charge
 
+	# Show how many gorillas GameState has spawned
+	var count: int = game_state.gorillas.size()
+	text += "Total gorillas: %d\n" % count
+
 	var hud_script = hud
 	var last_pos: Vector3 = hud_script.last_explosion_pos
 	text += "Last explosion pos: (%.2f, %.2f, %.2f)\n" % [last_pos.x, last_pos.y, last_pos.z]

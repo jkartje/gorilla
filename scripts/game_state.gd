@@ -4,19 +4,28 @@ extends Node
 
 const GORILLA_SCENE: PackedScene = preload("res://scenes/Gorilla.tscn")
 
+const MAP_HALF_SIZE: float = 100.0
+const SPAWN_MARGIN: float = 10.0
+
 var gorillas: Array[Node3D] = []
 var player_gorilla: Node3D = null
 
 # Configurable number of gorillas (including player)
 var num_gorillas: int = 4
 
-# Spawn zones (XZ rectangles) in world space
-# These assume a 20x20 ground centered at (0,0)
+# Spawn zones (XZ rectangles) in world space for 200x200 map
 var spawn_zones: Array[Dictionary] = [
-	{ "min": Vector2(-8.0, -8.0), "max": Vector2(-2.0, -2.0) },
-	{ "min": Vector2( 2.0, -8.0), "max": Vector2( 8.0, -2.0) },
-	{ "min": Vector2(-8.0,  2.0), "max": Vector2(-2.0,  8.0) },
-	{ "min": Vector2( 2.0,  2.0), "max": Vector2( 8.0,  8.0) },
+	{ "min": Vector2(-MAP_HALF_SIZE + SPAWN_MARGIN, -MAP_HALF_SIZE + SPAWN_MARGIN),
+	  "max": Vector2(-SPAWN_MARGIN, -SPAWN_MARGIN) },
+
+	{ "min": Vector2(SPAWN_MARGIN, -MAP_HALF_SIZE + SPAWN_MARGIN),
+	  "max": Vector2(MAP_HALF_SIZE - SPAWN_MARGIN, -SPAWN_MARGIN) },
+
+	{ "min": Vector2(-MAP_HALF_SIZE + SPAWN_MARGIN, SPAWN_MARGIN),
+	  "max": Vector2(-SPAWN_MARGIN, MAP_HALF_SIZE - SPAWN_MARGIN) },
+
+	{ "min": Vector2(SPAWN_MARGIN, SPAWN_MARGIN),
+	  "max": Vector2(MAP_HALF_SIZE - SPAWN_MARGIN, MAP_HALF_SIZE - SPAWN_MARGIN) },
 ]
 
 # Distinct colors to rotate through
@@ -30,7 +39,7 @@ var gorilla_colors: Array[Color] = [
 ]
 
 func _ready() -> void:
-	# Defer so the parent (Main) finishes setting up its children before we add more
+	# Defer so parent (Main) finishes creating terrain before we raycast
 	call_deferred("spawn_gorillas")
 
 func spawn_gorillas() -> void:
@@ -52,7 +61,7 @@ func spawn_gorillas() -> void:
 
 		var zone: Dictionary = spawn_zones[i]
 		var spawn_pos: Vector3 = _compute_spawn_position(zone, rng, main_root)
-		g.transform.origin = spawn_pos   # local transform is fine before adding to tree
+		g.transform.origin = spawn_pos
 
 		main_root.add_child(g)
 
@@ -71,8 +80,8 @@ func _compute_spawn_position(zone: Dictionary, rng: RandomNumberGenerator, main_
 	var x: float = rng.randf_range(min_v.x, max_v.x)
 	var z: float = rng.randf_range(min_v.y, max_v.y)
 
-	var from: Vector3 = Vector3(x, 20.0, z)
-	var to: Vector3 = Vector3(x, -20.0, z)
+	var from: Vector3 = Vector3(x, 40.0, z)
+	var to: Vector3 = Vector3(x, -40.0, z)
 
 	var space_state: PhysicsDirectSpaceState3D = main_root.get_world_3d().direct_space_state
 

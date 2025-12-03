@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://n3i6oo04ghb2"]
+[gd_scene load_steps=7 format=3 uid="uid://n3i6oo04ghb2"]
 
 [ext_resource type="Script" uid="uid://bfkmh6qyyadcx" path="res://scripts/input_controller.gd" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://dqk6df0edxwk" path="res://scripts/terrain_generator.gd" id="1_rarhs"]
 [ext_resource type="PackedScene" uid="uid://456b0ktms2yp" path="res://scenes/HUD.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://bta71u3el3c7b" path="res://scripts/game_state.gd" id="4_rarhs"]
 
@@ -25,7 +26,10 @@ shape = SubResource("BoxShape3D_elqb8")
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
 
 [node name="MainCamera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 10, 10)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 140, 0)
+
+[node name="TerrainGenerator" type="Node3D" parent="."]
+script = ExtResource("1_rarhs")
 
 [node name="HUD" parent="." instance=ExtResource("2_rarhs")]
 
