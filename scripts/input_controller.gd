@@ -2,7 +2,7 @@ extends Node
 
 @onready var turn_manager: TurnManager = $"../TurnManager"
 @onready var hud: Node = $"../HUD"
-@onready var camera: Camera3D = $"../MainCamera"
+@onready var camera_rig: CameraRig = $"../CameraRig"
 
 var charge: float = 0.0
 var max_charge: float = 25.0
@@ -35,9 +35,8 @@ func _process(delta: float) -> void:
 	elif Input.is_action_just_released("accept"):
 		_fire_banana(gorilla)
 		charge = 0.0
-		turn_manager.end_turn()  # 🔁 advance to next gorilla
+		# Turn will end when projectile resolves
 
-	_update_camera(gorilla)
 	_update_hud(gorilla)
 
 func _fire_banana(gorilla: Gorilla) -> void:
@@ -53,12 +52,11 @@ func _fire_banana(gorilla: Gorilla) -> void:
 
 	p.launch(origin, dir * charge)
 
-func _update_camera(gorilla: Gorilla) -> void:
-	# Simple follow: position camera behind and above the active gorilla
-	var target: Vector3 = gorilla.global_transform.origin
-	var offset: Vector3 = Vector3(0, 8, 16)
-	camera.global_transform.origin = target + offset
-	camera.look_at(target, Vector3.UP)
+	# Camera follows the projectile
+	camera_rig.follow_projectile(p)
+
+	# When projectile resolves, we end the turn and go back to actor mode
+	p.resolved.connect(_on_projectile_resolved)
 
 func _update_hud(gorilla: Gorilla) -> void:
 	var text := "GORILLA TURN DEBUG\n"
@@ -83,3 +81,12 @@ func _update_hud(gorilla: Gorilla) -> void:
 		text += "Last explosion pos: (%.2f, %.2f, %.2f)\n" % [last_pos.x, last_pos.y, last_pos.z]
 
 	hud.call("update_debug", text)
+
+func _on_projectile_resolved(pos: Vector3) -> void:
+	# Focus on explosion point for an extra second
+	camera_rig.focus_point(pos)
+
+	await get_tree().create_timer(1.0).timeout
+
+	camera_rig.focus_actor_mode()
+	turn_manager.end_turn()

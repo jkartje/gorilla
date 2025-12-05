@@ -1,7 +1,10 @@
 extends RigidBody3D
 
-var exploded: bool = false
-const EXPLOSION_SCENE := preload("res://scenes/DebugExplosion.tscn")
+signal resolved(position: Vector3)
+
+const EXPLOSION_SCENE: PackedScene = preload("res://scenes/DebugExplosion.tscn")
+
+var resolved_flag: bool = false
 
 func _ready() -> void:
 	contact_monitor = true
@@ -12,21 +15,26 @@ func launch(origin: Vector3, velocity: Vector3) -> void:
 	linear_velocity = velocity
 
 func _physics_process(_delta: float) -> void:
-	# Safety: if we fall way out of the world, clean up
-	if global_transform.origin.y < -50.0:
-		queue_free()
+	# If we fall too far, treat as out-of-bounds resolution
+	if not resolved_flag and global_transform.origin.y < -50.0:
+		_resolve(false)
 
-func _on_body_entered(body: Node) -> void:
+func _on_body_entered(_body: Node) -> void:
+	# Impact with anything → explode and resolve
 	explode()
 
 func explode() -> void:
-	if exploded:
+	if resolved_flag:
 		return
-	exploded = true
 
-	# Spawn visible debug explosion at impact point
-	_spawn_debug_explosion()
+	# Spawn a visible explosion at the impact point, slightly above surface
+	var explosion := EXPLOSION_SCENE.instantiate()
+	get_tree().current_scene.add_child(explosion)
+	var pos: Vector3 = global_transform.origin
+	pos.y += 0.5
+	explosion.global_transform.origin = pos
 
+	# Deal damage in a radius
 	var radius: float = 3.0
 
 	var shape := SphereShape3D.new()
@@ -45,14 +53,12 @@ func explode() -> void:
 		if collider and collider.has_method("apply_damage"):
 			collider.apply_damage(1)
 
+	_resolve(true)
+
+func _resolve(_from_explosion: bool) -> void:
+	if resolved_flag:
+		return
+	resolved_flag = true
+
+	emit_signal("resolved", global_transform.origin)
 	queue_free()
-
-func _spawn_debug_explosion() -> void:
-	var explosion = EXPLOSION_SCENE.instantiate()
-	get_tree().current_scene.add_child(explosion)
-	explosion.global_transform.origin = global_transform.origin
-
-	# Report to HUD via GameState
-	var game_state = get_tree().current_scene.get_node("GameState")
-	if game_state:
-		game_state.report_explosion(global_transform.origin)
