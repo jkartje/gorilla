@@ -69,11 +69,11 @@ func _update_hud(gorilla: Gorilla) -> void:
 	else:
 		text += "No active gorilla\n"
 
-	text += "Charge: %.1f\n" % charge
+		text += "Charge: %.1f\n" % charge
 
-	# Optionally show how many gorillas are in the match
-	var count: int = turn_manager.gorillas.size()
-	text += "Total gorillas: %d\n" % count
+	# Show how many gorillas are still alive
+	var alive_count: int = turn_manager.get_alive_count()
+	text += "Alive gorillas: %d\n" % alive_count
 
 	var hud_script = hud
 	if "last_explosion_pos" in hud_script:
@@ -81,6 +81,7 @@ func _update_hud(gorilla: Gorilla) -> void:
 		text += "Last explosion pos: (%.2f, %.2f, %.2f)\n" % [last_pos.x, last_pos.y, last_pos.z]
 
 	hud.call("update_debug", text)
+
 
 func _on_projectile_resolved(pos: Vector3) -> void:
 	# Focus on explosion point for an extra second
