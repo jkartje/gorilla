@@ -49,21 +49,21 @@ func spawn_gorillas() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 
-	var main_root := get_parent() as Node3D
-	if main_root == null:
+	var parent_root: Node3D = get_parent() as Node3D
+	if parent_root == null:
 		push_error("GameState: parent is not a Node3D")
 		return
 
 	var total: int = min(num_gorillas, spawn_zones.size())
 
 	for i in range(total):
-		var g := GORILLA_SCENE.instantiate() as Node3D
+		var g: Node3D = GORILLA_SCENE.instantiate() as Node3D
 
 		var zone: Dictionary = spawn_zones[i]
-		var spawn_pos: Vector3 = _compute_spawn_position(zone, rng, main_root)
+		var spawn_pos: Vector3 = _compute_spawn_position(zone, rng, parent_root)
 		g.transform.origin = spawn_pos
 
-		main_root.add_child(g)
+		parent_root.add_child(g)
 
 		var color: Color = gorilla_colors[i % gorilla_colors.size()]
 		g.call("set_color", color)
@@ -72,6 +72,13 @@ func spawn_gorillas() -> void:
 
 	if gorillas.size() > 0:
 		player_gorilla = gorillas[0]
+
+		# Hand gorilla list to TurnManager
+		if parent_root.has_node("TurnManager"):
+			var tm: Node = parent_root.get_node("TurnManager")
+			tm.call("start_match", gorillas)
+
+
 
 func _compute_spawn_position(zone: Dictionary, rng: RandomNumberGenerator, main_root: Node3D) -> Vector3:
 	var min_v: Vector2 = zone["min"]

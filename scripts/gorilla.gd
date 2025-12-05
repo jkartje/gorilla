@@ -1,4 +1,5 @@
 extends CharacterBody3D
+class_name Gorilla
 
 signal died
 
