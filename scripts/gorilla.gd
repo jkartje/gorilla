@@ -9,6 +9,8 @@ var health: int = 1
 var yaw: float = 0.0
 var pitch: float = deg_to_rad(45.0)
 
+@onready var visuals: Node3D = $Visuals
+@onready var anim_player: AnimationPlayer = $Visuals/bear/AnimationPlayer
 @onready var throw_origin: Marker3D = $ThrowOrigin
 @onready var aim_pivot: Node3D = $AimPivot
 @onready var body_mesh: MeshInstance3D = $BodyMesh
@@ -35,6 +37,34 @@ func get_aim_direction() -> Vector3:
 	var dir := forward.rotated(right, pitch)
 	return dir.normalized()
 
+func set_turn_active(active: bool) -> void:
+	if not is_alive:
+		return
+	if active:
+		_play_loop("Idle")
+	else:
+		# Pause when not active (your spec: idle only on that gorilla’s turn)
+		if anim_player and anim_player.is_playing():
+			anim_player.pause()
+
+func play_attack() -> void:
+	if not is_alive:
+		return
+	_play_once("Attack")
+
+func play_death() -> void:
+	_play_once("Death")
+
+func _play_loop(name: String) -> void:
+	if anim_player and anim_player.has_animation(name):
+		anim_player.play(name)
+		anim_player.speed_scale = 1.0
+
+func _play_once(name: String) -> void:
+	if anim_player and anim_player.has_animation(name):
+		anim_player.play(name)
+		anim_player.speed_scale = 1.0
+
 func set_color(color: Color) -> void:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -51,6 +81,8 @@ func apply_damage(amount: int) -> void:
 		die()
 
 func die() -> void:
+	if not is_alive:
+		return
 	is_alive = false
-	hide()
+	play_death()
 	emit_signal("died")

@@ -25,7 +25,6 @@ func start_match(gorilla_list: Array) -> void:
 	_start_alive_turn()
 
 func _start_alive_turn() -> void:
-	# Check how many are alive
 	var alive_count: int = get_alive_count()
 
 	# If 0 or 1 alive → match is over
@@ -33,19 +32,15 @@ func _start_alive_turn() -> void:
 		var winner: Gorilla = null
 		if alive_count == 1:
 			for n in gorillas:
-				var g: Gorilla = n as Gorilla
-				if g != null and g.is_alive:
-					winner = g
+				var gg: Gorilla = n as Gorilla
+				if gg != null and gg.is_alive:
+					winner = gg
 					break
 
 		match_active = false
 		current_index = -1
+		_set_all_turn_active(false)
 		emit_signal("match_over", winner)
-		return
-
-	if gorillas.is_empty():
-		match_active = false
-		current_index = -1
 		return
 
 	if current_index < 0 or current_index >= gorillas.size():
@@ -56,14 +51,18 @@ func _start_alive_turn() -> void:
 	while loops < gorillas.size():
 		var g: Gorilla = gorillas[current_index] as Gorilla
 		if g != null and g.is_alive:
+			_set_all_turn_active(false)
+			g.set_turn_active(true)
 			emit_signal("turn_started", g)
 			return
+
 		current_index = (current_index + 1) % gorillas.size()
 		loops += 1
 
-	# If we somehow looped with no alive gorillas, treat as match over
+	# No alive gorillas found
 	match_active = false
 	current_index = -1
+	_set_all_turn_active(false)
 	emit_signal("match_over", null)
 
 func end_turn() -> void:
@@ -76,6 +75,7 @@ func end_turn() -> void:
 
 	var g: Gorilla = gorillas[current_index] as Gorilla
 	if g != null:
+		g.set_turn_active(false)
 		emit_signal("turn_ended", g)
 
 	current_index = (current_index + 1) % gorillas.size()
@@ -98,3 +98,9 @@ func get_alive_count() -> int:
 		if g != null and g.is_alive:
 			c += 1
 	return c
+
+func _set_all_turn_active(active: bool) -> void:
+	for n in gorillas:
+		var g: Gorilla = n as Gorilla
+		if g != null:
+			g.set_turn_active(active)

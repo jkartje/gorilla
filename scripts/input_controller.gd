@@ -33,6 +33,8 @@ func _process(delta: float) -> void:
 	if Input.is_action_pressed("accept"):
 		charge = clamp(charge + delta * 20.0, 0.0, max_charge)
 	elif Input.is_action_just_released("accept"):
+		# This IS the throw-release moment
+		gorilla.play_attack()
 		_fire_banana(gorilla)
 		charge = 0.0
 		# Turn will end when projectile resolves
@@ -69,7 +71,7 @@ func _update_hud(gorilla: Gorilla) -> void:
 	else:
 		text += "No active gorilla\n"
 
-		text += "Charge: %.1f\n" % charge
+	text += "Charge: %.1f\n" % charge
 
 	# Show how many gorillas are still alive
 	var alive_count: int = turn_manager.get_alive_count()
@@ -81,7 +83,6 @@ func _update_hud(gorilla: Gorilla) -> void:
 		text += "Last explosion pos: (%.2f, %.2f, %.2f)\n" % [last_pos.x, last_pos.y, last_pos.z]
 
 	hud.call("update_debug", text)
-
 
 func _on_projectile_resolved(pos: Vector3) -> void:
 	# Focus on explosion point for an extra second
