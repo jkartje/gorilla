@@ -1,3 +1,4 @@
+# res://scripts/input_controller.gd
 extends Node
 
 @onready var turn_manager: TurnManager = $"../TurnManager"
@@ -7,11 +8,18 @@ extends Node
 var charge: float = 0.0
 var max_charge: float = 25.0
 
+# Always keep our throw signal wired to the currently active gorilla
+var _connected_gorilla: Gorilla = null
+
+
 func _process(delta: float) -> void:
 	var gorilla: Gorilla = turn_manager.current_gorilla()
 	if gorilla == null:
+		_wire_throw_signal(null)
 		_update_hud(null)
 		return
+
+	_wire_throw_signal(gorilla)
 
 	if not gorilla.is_alive:
 		_update_hud(gorilla)
@@ -29,36 +37,66 @@ func _process(delta: float) -> void:
 	elif Input.is_action_pressed("ui_down"):
 		gorilla.pitch = clamp(gorilla.pitch - delta * 0.8, deg_to_rad(10), deg_to_rad(80))
 
-	# Charge + throw
+	# Charge
 	if Input.is_action_pressed("accept"):
 		charge = clamp(charge + delta * 20.0, 0.0, max_charge)
+
+	# Release: start Attack; projectile spawns on animation event (throw_released signal)
 	elif Input.is_action_just_released("accept"):
-		# This IS the throw-release moment
-		gorilla.play_attack()
-		_fire_banana(gorilla)
+		if charge > 0.0:
+			# Gorilla will cache origin/dir/charge and emit throw_released when the anim hits the event
+			gorilla.request_throw(charge)
 		charge = 0.0
-		# Turn will end when projectile resolves
 
 	_update_hud(gorilla)
 
-func _fire_banana(gorilla: Gorilla) -> void:
-	if charge <= 0.0:
+
+func _wire_throw_signal(active_gorilla: Gorilla) -> void:
+	if active_gorilla == _connected_gorilla:
 		return
+
+	# Disconnect old
+	if _connected_gorilla != null:
+		if _connected_gorilla.throw_released.is_connected(_on_throw_released):
+			_connected_gorilla.throw_released.disconnect(_on_throw_released)
+
+	_connected_gorilla = active_gorilla
+
+	# Connect new
+	if _connected_gorilla != null:
+		if not _connected_gorilla.throw_released.is_connected(_on_throw_released):
+			_connected_gorilla.throw_released.connect(_on_throw_released)
+
+	# Safety: never carry charge across gorilla swaps
+	charge = 0.0
+
+
+func _on_throw_released(origin: Vector3, dir: Vector3, throw_charge: float) -> void:
+	# Spawn + launch banana
+	print("InputController._on_throw_released() charge=", throw_charge)
 
 	var proj_scene: PackedScene = load("res://scenes/BananaProjectile.tscn")
 	var p: RigidBody3D = proj_scene.instantiate() as RigidBody3D
 	get_tree().current_scene.add_child(p)
 
-	var origin: Vector3 = gorilla.throw_origin.global_transform.origin
-	var dir: Vector3 = gorilla.get_aim_direction()
-
-	p.launch(origin, dir * charge)
+	p.launch(origin, dir * throw_charge)
 
 	# Camera follows the projectile
 	camera_rig.follow_projectile(p)
 
 	# When projectile resolves, we end the turn and go back to actor mode
 	p.resolved.connect(_on_projectile_resolved)
+
+
+func _on_projectile_resolved(pos: Vector3) -> void:
+	# Focus on explosion point for an extra second
+	camera_rig.focus_point(pos)
+
+	await get_tree().create_timer(1.0).timeout
+
+	camera_rig.focus_actor_mode()
+	turn_manager.end_turn()
+
 
 func _update_hud(gorilla: Gorilla) -> void:
 	var text := "GORILLA TURN DEBUG\n"
@@ -73,7 +111,6 @@ func _update_hud(gorilla: Gorilla) -> void:
 
 	text += "Charge: %.1f\n" % charge
 
-	# Show how many gorillas are still alive
 	var alive_count: int = turn_manager.get_alive_count()
 	text += "Alive gorillas: %d\n" % alive_count
 
@@ -83,12 +120,3 @@ func _update_hud(gorilla: Gorilla) -> void:
 		text += "Last explosion pos: (%.2f, %.2f, %.2f)\n" % [last_pos.x, last_pos.y, last_pos.z]
 
 	hud.call("update_debug", text)
-
-func _on_projectile_resolved(pos: Vector3) -> void:
-	# Focus on explosion point for an extra second
-	camera_rig.focus_point(pos)
-
-	await get_tree().create_timer(1.0).timeout
-
-	camera_rig.focus_actor_mode()
-	turn_manager.end_turn()
