@@ -9,6 +9,8 @@ radius = 0.2
 radius = 0.2
 
 [node name="BananaProjectile" type="RigidBody3D"]
+mass = 3.0
+gravity_scale = 1.2
 script = ExtResource("1_ta52b")
 
 [node name="BananaMesh" type="MeshInstance3D" parent="."]

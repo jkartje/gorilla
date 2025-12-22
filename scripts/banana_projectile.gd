@@ -4,17 +4,24 @@ signal resolved(position: Vector3)
 
 const EXPLOSION_SCENE: PackedScene = preload("res://scenes/DebugExplosion.tscn")
 
+var _wind_manager: WindManager = null
+var _wind_enabled: bool = true
 var resolved_flag: bool = false
 
 func _ready() -> void:
+	_wind_manager = get_tree().current_scene.get_node_or_null("WindManager") as WindManager
 	contact_monitor = true
 	max_contacts_reported = 4
+	body_entered.connect(_on_body_entered)
 
 func launch(origin: Vector3, velocity: Vector3) -> void:
 	global_transform.origin = origin
 	linear_velocity = velocity
 
 func _physics_process(_delta: float) -> void:
+	if _wind_enabled and _wind_manager != null:
+		var y := global_transform.origin.y
+		apply_central_force(_wind_manager.get_wind_force_at_height(y))
 	# If we fall too far, treat as out-of-bounds resolution
 	if not resolved_flag and global_transform.origin.y < -50.0:
 		_resolve(false)

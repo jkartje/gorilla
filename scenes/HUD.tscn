@@ -5,6 +5,18 @@
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_qpvh6")
 
-[node name="DebugLabel" type="Label" parent="."]
+[node name="DebugStack" type="VBoxContainer" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DebugLabel" type="Label" parent="DebugStack"]
+layout_mode = 2
+
+[node name="WindWidget" type="Control" parent="DebugStack"]
+layout_mode = 2
+
+[node name="WindLabel" type="Label" parent="DebugStack/WindWidget"]
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+text = "TEST"

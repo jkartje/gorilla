@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://n3i6oo04ghb2"]
+[gd_scene load_steps=11 format=3 uid="uid://n3i6oo04ghb2"]
 
 [ext_resource type="Script" uid="uid://bfkmh6qyyadcx" path="res://scripts/input_controller.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://dw42qtetjadqn" path="res://scripts/main_root.gd" id="1_nxtc6"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://bta71u3el3c7b" path="res://scripts/game_state.gd" id="4_rarhs"]
 [ext_resource type="Script" uid="uid://krus1bafq5ip" path="res://scripts/turn_manager.gd" id="5_vcsgt"]
 [ext_resource type="Script" uid="uid://cg7mmkdga4wce" path="res://scripts/camera_rig.gd" id="6_c01mt"]
+[ext_resource type="Script" uid="uid://ckvhlh615n1o8" path="res://scripts/wind_manager.gd" id="7_jlsqs"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_qnwvq"]
 size = Vector2(200, 200)
@@ -32,16 +33,19 @@ transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 
 [node name="TerrainGenerator" type="Node3D" parent="."]
 script = ExtResource("1_rarhs")
 
+[node name="HUD" parent="." instance=ExtResource("2_rarhs")]
+
 [node name="GameState" type="Node" parent="."]
 script = ExtResource("4_rarhs")
-
-[node name="HUD" parent="." instance=ExtResource("2_rarhs")]
 
 [node name="InputController" type="Node" parent="."]
 script = ExtResource("1_elqb8")
 
 [node name="TurnManager" type="Node" parent="."]
 script = ExtResource("5_vcsgt")
+
+[node name="WindManager" type="Node" parent="."]
+script = ExtResource("7_jlsqs")
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("6_c01mt")
